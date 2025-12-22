@@ -1,0 +1,7 @@
+{
+  "name": "AI Minute Master",
+  "description": "Transform messy meeting notes or whiteboards into structured summaries and actionable tasks using Gemini AI.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
