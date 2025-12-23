@@ -26,12 +26,12 @@ export const AnalysisDisplay: React.FC<Props> = ({ data }) => {
         <h2 className="text-2xl font-bold text-slate-800 mb-4">{data.title}</h2>
         
         <section className="mb-8">
-          <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Summary</h3>
+          <h3 className="text-sm font-semibold text-slate-500 tracking-wider mb-2">要約</h3>
           <p className="text-slate-600 leading-relaxed text-lg italic">"{data.summary}"</p>
         </section>
 
         <section className="mb-8">
-          <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Key Points</h3>
+          <h3 className="text-sm font-semibold text-slate-500 tracking-wider mb-4">キーポイント</h3>
           <ul className="space-y-3">
             {data.keyPoints.map((point, i) => (
               <li key={i} className="flex items-start gap-3 text-slate-700">
@@ -46,9 +46,9 @@ export const AnalysisDisplay: React.FC<Props> = ({ data }) => {
 
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Action Items</h3>
+            <h3 className="text-sm font-semibold text-slate-500 tracking-wider">タスク</h3>
             <span className="bg-slate-100 text-slate-500 text-xs px-2 py-1 rounded-md font-medium">
-              {data.actionItems.length} Tasks
+              {data.actionItems.length} 件
             </span>
           </div>
           <div className="grid gap-4 md:grid-cols-2">

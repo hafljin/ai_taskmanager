@@ -128,12 +128,12 @@ const App: React.FC = () => {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900 leading-tight">Minute Master</h1>
-              <p className="text-xs text-slate-500 font-medium">AI Meeting Assistant</p>
+              <h1 className="text-xl font-bold text-slate-900 leading-tight">会議後アクション自動化ツール</h1>
+              <p className="text-xs text-slate-500 font-medium">会議内容の要約・タスク抽出・保存を自動化</p>
             </div>
           </div>
           <Button variant="secondary" onClick={handleClear} disabled={status === 'loading'}>
-            Clear All
+            全てクリア
           </Button>
         </div>
       </header>
@@ -142,17 +142,17 @@ const App: React.FC = () => {
         <div className="grid grid-cols-1 gap-8">
           {/* Input Section */}
           <section className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Meeting Notes or Transcript</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">会議メモ・議事録テキスト</label>
             <textarea
               className="w-full h-40 p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none resize-none text-slate-700 placeholder-slate-400"
-              placeholder="Paste your meeting notes, discussion points, or rough transcript here..."
+              placeholder="会議メモや議事録、議論ポイントを入力してください..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
             />
 
             <div className="mt-6 flex flex-col md:flex-row items-center gap-4">
               <div className="w-full">
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Or Upload Photos of Whiteboards/Paper</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">ホワイトボードや紙の写真をアップロード</label>
                 <div 
                   onClick={() => fileInputRef.current?.click()}
                   className="group relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition-all cursor-pointer"
@@ -162,7 +162,7 @@ const App: React.FC = () => {
                   ) : (
                     <div className="text-center">
                       <svg className="w-8 h-8 text-slate-400 group-hover:text-indigo-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                      <p className="text-xs text-slate-500 font-medium">Click to upload image</p>
+                      <p className="text-xs text-slate-500 font-medium">画像をクリックしてアップロード</p>
                     </div>
                   )}
                   <input 
@@ -180,7 +180,7 @@ const App: React.FC = () => {
                   onClick={handleSubmit} 
                   isLoading={status === 'loading'}
                 >
-                  Summarize Notes
+                  要約・タスク抽出
                 </Button>
               </div>
             </div>
@@ -200,8 +200,8 @@ const App: React.FC = () => {
               <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-10 h-10 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.364-6.364l-.707-.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M12 7a5 5 0 015 5 5 5 0 01-5 5 5 5 0 01-5-5 5 5 0 015-5z" /></svg>
               </div>
-              <h3 className="text-lg font-bold text-slate-800">No analysis yet</h3>
-              <p className="text-slate-500 max-w-sm mx-auto">Input your meeting notes above or upload a photo to generate a summary and task list.</p>
+              <h3 className="text-lg font-bold text-slate-800">まだ要約はありません</h3>
+              <p className="text-slate-500 max-w-sm mx-auto">上に会議メモを入力するか、写真をアップロードして要約・タスク抽出を行ってください。</p>
             </div>
           )}
 
@@ -263,9 +263,9 @@ const App: React.FC = () => {
                                         <li key={i} className="flex gap-2 items-center bg-indigo-50/50 rounded-lg px-2 py-1 hover:bg-indigo-100 transition-all">
                                           <input className="border-b flex-1 bg-transparent outline-none px-1" value={t.task} onChange={e => handleDialogTaskChange(i, e.target.value)} />
                                           <select className="border rounded px-2 py-1 bg-white" value={t.priority} onChange={e => handleDialogPriorityChange(i, e.target.value as 'High' | 'Medium' | 'Low')}>
-                                            <option value="High">High</option>
-                                            <option value="Medium">Medium</option>
-                                            <option value="Low">Low</option>
+                                            <option value="High">高</option>
+                                            <option value="Medium">中</option>
+                                            <option value="Low">低</option>
                                           </select>
                                         </li>
                                       ))}
@@ -296,8 +296,8 @@ const App: React.FC = () => {
               <div className="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
               <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
             </div>
-            <h3 className="text-xl font-bold text-slate-900">Analyzing meeting details...</h3>
-            <p className="text-slate-500 mt-2">Gemini is extracting tasks and summarizing your notes.</p>
+            <h3 className="text-xl font-bold text-slate-900">会議内容を解析中...</h3>
+            <p className="text-slate-500 mt-2">AIが要約とタスク抽出を行っています。</p>
           </div>
         </div>
       )}
