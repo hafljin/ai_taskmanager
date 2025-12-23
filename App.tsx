@@ -1,9 +1,10 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './components/ui/Button';
 import { analyzeNotes } from './services/geminiService';
 import { MeetingAnalysis, AnalysisStatus } from './types';
 import { AnalysisDisplay } from './components/AnalysisDisplay';
+import { saveMeetingRecord, getMeetingRecords, deleteMeetingRecord } from './lib/storage';
 
 const App: React.FC = () => {
   const [inputText, setInputText] = useState('');
@@ -11,7 +12,71 @@ const App: React.FC = () => {
   const [status, setStatus] = useState<AnalysisStatus>('idle');
   const [result, setResult] = useState<MeetingAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [records, setRecords] = useState<(MeetingAnalysis & { savedAt: string })[]>([]);
+  const [showDialog, setShowDialog] = useState(false);
+  const [dialogData, setDialogData] = useState<((MeetingAnalysis & { savedAt: string }) & { index?: number }) | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // 保存済みデータの取得
+  useEffect(() => {
+    setRecords(getMeetingRecords());
+  }, []);
+
+  // 保存ボタン押下時
+  const handleSave = () => {
+    if (result) {
+      saveMeetingRecord(result);
+      setRecords(getMeetingRecords());
+    }
+  };
+
+  // 削除ボタン押下時
+  const handleDelete = (index: number) => {
+    deleteMeetingRecord(index);
+    setRecords(getMeetingRecords());
+  };
+
+  // ダイアログ表示
+  const handleShowDialog = (rec: MeetingAnalysis & { savedAt: string }, index: number) => {
+    setDialogData({ ...rec, index });
+    setShowDialog(true);
+  };
+  const handleCloseDialog = () => {
+    setShowDialog(false);
+    setDialogData(null);
+  };
+
+  // ダイアログ内編集用ハンドラ
+  const handleDialogChange = (field: keyof MeetingAnalysis, value: any) => {
+    if (!dialogData) return;
+    setDialogData({ ...dialogData, [field]: value });
+  };
+  const handleDialogKeyPointChange = (idx: number, value: string) => {
+    if (!dialogData) return;
+    const newKP = [...dialogData.keyPoints];
+    newKP[idx] = value;
+    setDialogData({ ...dialogData, keyPoints: newKP });
+  };
+  const handleDialogTaskChange = (idx: number, value: string) => {
+    if (!dialogData) return;
+    const newTasks = dialogData.actionItems.map((t, i) => i === idx ? { ...t, task: value } : t);
+    setDialogData({ ...dialogData, actionItems: newTasks });
+  };
+  const handleDialogPriorityChange = (idx: number, value: 'High' | 'Medium' | 'Low') => {
+    if (!dialogData) return;
+    const newTasks = dialogData.actionItems.map((t, i) => i === idx ? { ...t, priority: value } : t);
+    setDialogData({ ...dialogData, actionItems: newTasks });
+  };
+  // 編集内容を保存
+  const handleDialogSave = () => {
+    if (dialogData && typeof dialogData.index === 'number') {
+      const updated = [...records];
+      updated[dialogData.index] = { ...dialogData };
+      setRecords(updated);
+      localStorage.setItem('meeting_records', JSON.stringify(updated));
+      setShowDialog(false);
+      setDialogData(null);
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -142,7 +207,83 @@ const App: React.FC = () => {
 
           {/* Results Section */}
           {status === 'success' && result && (
-            <AnalysisDisplay data={result} />
+            <>
+              <AnalysisDisplay data={result} />
+              <div className="mt-4 flex gap-2">
+                <Button onClick={handleSave}>保存</Button>
+              </div>
+            </>
+          )}
+
+          {/* 保存済みデータ一覧 */}
+          {records.length > 0 && (
+            <section className="mt-8">
+              <h2 className="text-lg font-bold mb-2">保存済み会議データ</h2>
+              <ul className="space-y-4">
+                {records.map((rec, i) => (
+                  <li key={i} className="p-4 border rounded bg-white flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <div className="font-semibold">{rec.title}</div>
+                      <div className="text-xs text-slate-500">{new Date(rec.savedAt).toLocaleString()}</div>
+                    </div>
+                    <div className="mt-2 md:mt-0 flex gap-2">
+                      <Button variant="secondary" onClick={() => handleShowDialog(rec, i)}>表示</Button>
+                            {/* ダイアログ表示 */}
+                            {showDialog && dialogData && (
+                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                                <div className="bg-white rounded-2xl p-8 max-w-xl w-full shadow-2xl relative animate-in fade-in zoom-in-95 border border-indigo-100">
+                                  <button onClick={handleCloseDialog} className="absolute top-3 right-3 text-slate-400 hover:text-slate-700 text-2xl font-bold transition-colors">×</button>
+                                  <div className="mb-4 text-xs text-slate-500 flex items-center gap-2">
+                                    <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 4h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2z" /></svg>
+                                    {new Date(dialogData.savedAt).toLocaleString()}
+                                  </div>
+                                  <div className="mb-6">
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">会議タイトル</label>
+                                    <input className="w-full font-bold text-lg border-b-2 border-indigo-200 focus:border-indigo-500 outline-none py-1 px-2 transition-all" value={dialogData.title} onChange={e => handleDialogChange('title', e.target.value)} />
+                                  </div>
+                                  <div className="mb-6">
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">要約</label>
+                                    <textarea className="w-full border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-indigo-200 outline-none mb-2 min-h-[60px]" value={dialogData.summary} onChange={e => handleDialogChange('summary', e.target.value)} />
+                                  </div>
+                                  <div className="mb-6">
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">キーポイント</label>
+                                    <ul className="space-y-2">
+                                      {dialogData.keyPoints.map((k, i) => (
+                                        <li key={i} className="flex items-center gap-2">
+                                          <span className="text-xs text-slate-400 font-bold">{i + 1}.</span>
+                                          <input className="w-full border-b border-slate-200 focus:border-indigo-400 outline-none py-1 px-2 transition-all" value={k} onChange={e => handleDialogKeyPointChange(i, e.target.value)} />
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                  <div className="mb-6">
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">タスク</label>
+                                    <ul className="space-y-2">
+                                      {dialogData.actionItems.map((t, i) => (
+                                        <li key={i} className="flex gap-2 items-center bg-indigo-50/50 rounded-lg px-2 py-1 hover:bg-indigo-100 transition-all">
+                                          <input className="border-b flex-1 bg-transparent outline-none px-1" value={t.task} onChange={e => handleDialogTaskChange(i, e.target.value)} />
+                                          <select className="border rounded px-2 py-1 bg-white" value={t.priority} onChange={e => handleDialogPriorityChange(i, e.target.value as 'High' | 'Medium' | 'Low')}>
+                                            <option value="High">High</option>
+                                            <option value="Medium">Medium</option>
+                                            <option value="Low">Low</option>
+                                          </select>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                  <div className="flex justify-end gap-2 mt-6">
+                                    <button onClick={handleDialogSave} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-semibold shadow transition-all">保存</button>
+                                    <button onClick={handleCloseDialog} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-2 rounded-lg font-semibold transition-all">キャンセル</button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                      <Button variant="destructive" onClick={() => handleDelete(i)}>削除</Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
         </div>
       </main>

@@ -43,11 +43,26 @@ const analysisFunction: FunctionDeclaration = {
 };
 
 export const analyzeNotes = async (
-  content: string, 
+  content: string,
   imageUri?: string
 ): Promise<MeetingAnalysis> => {
+  // Vite環境変数はimport.meta.envで参照
+  const useDummy = import.meta.env.VITE_USE_DUMMY_AI === 'true';
+  if (useDummy) {
+    // ダミーデータを返す（デモ用）
+    return {
+      title: 'デモ会議タイトル',
+      summary: 'これはダミーの要約です。会議内容を簡潔にまとめています。',
+      keyPoints: ['ダミーキーポイント1', 'ダミーキーポイント2', 'ダミーキーポイント3'],
+      actionItems: [
+        { task: 'ダミータスク1', priority: 'High' },
+        { task: 'ダミータスク2', priority: 'Medium' },
+        { task: 'ダミータスク3', priority: 'Low' }
+      ]
+    };
+  }
+  // ...existing code...
   const model = "gemini-3-flash-preview";
-  
   const parts: any[] = [];
   if (content) parts.push({ text: content });
   if (imageUri) {
@@ -60,7 +75,6 @@ export const analyzeNotes = async (
       }
     });
   }
-
   const response = await ai.models.generateContent({
     model,
     contents: { parts },
@@ -69,11 +83,9 @@ export const analyzeNotes = async (
       systemInstruction: "You are a professional secretary. Analyze the provided meeting notes or images of notes/whiteboards and extract structured information. Be precise and action-oriented."
     }
   });
-
   const calls = response.functionCalls;
   if (!calls || calls.length === 0) {
     throw new Error("AI failed to generate structured data. Please try again.");
   }
-
   return calls[0].args as unknown as MeetingAnalysis;
 };
